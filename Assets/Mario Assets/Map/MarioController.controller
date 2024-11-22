@@ -112,6 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4c8de881f8a3f479b80facd3d6f0b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_PunchType: 1
   m_EnablePunchStartAnimationPct: 0.3
   m_EnablePunchEndAnimationPct: 0.85
 --- !u!1107 &-3170346168729021182
@@ -424,6 +425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4c8de881f8a3f479b80facd3d6f0b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_PunchType: 2
   m_EnablePunchStartAnimationPct: 0.05
   m_EnablePunchEndAnimationPct: 0.48
 --- !u!1101 &7186107396635698157
@@ -460,8 +462,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4c8de881f8a3f479b80facd3d6f0b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_EnablePunchStartAnimationPct: 0.3
-  m_EnablePunchEndAnimationPct: 0.85
+  m_PunchType: 0
+  m_EnablePunchStartAnimationPct: 0.36
+  m_EnablePunchEndAnimationPct: 0.8
 --- !u!1109 &7743352554480016148
 AnimatorTransition:
   m_ObjectHideFlags: 1
