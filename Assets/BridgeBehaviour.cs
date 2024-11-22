@@ -61,4 +61,5 @@ public class BridgeBehaviour : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, bridgeWidth);
     }
+    
 }
