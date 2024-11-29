@@ -39,8 +39,12 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     public GameObject m_LeftHandCollider;
     public GameObject m_RightLegCollider;
 
+    [Header("Bridge")]
+    float n_BridgeForce;
+    float m_MovingAngleMax = 10;
 
-
+    float m_MaxAngleToAttach = 8.0f;
+    Collider m_CurrentElevator;
 
 
 
@@ -155,6 +159,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
             m_VerticalSpeed = 0.0f;
 
         UpdatedPunch();
+        UpdatedElevator();
 
     }
     bool CanJump()
@@ -175,7 +180,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.gameObject.CompareTag("Goomba"))
-        { 
+        {
             if (IsUpperHit(hit.transform))
             {
                 hit.gameObject.GetComponent<GoombaController>().Kill();
@@ -185,8 +190,13 @@ public class MarioController : MonoBehaviour, IRestartGameElement
             {
                 Debug.Log("Player must be hit");
             }
-        
+
         }
+        if (hit.gameObject.CompareTag("Bridge"))
+        {
+            hit.rigidbody.AddForceAtPosition(-hit.normal * n_BridgeForce, hit.point);
+        }
+
     }
 
     bool IsUpperHit(Transform GoombaTransform)
@@ -250,6 +260,62 @@ public class MarioController : MonoBehaviour, IRestartGameElement
             m_CurrentCheckPoint = other.GetComponent<CheckPoint>();
 
         }
+        if (other.CompareTag("Elevator"))
+        {
+            if (CanAttachElevator(other))
+            {
+                AttachElevator(other);
+            }
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if(other.CompareTag("Elevator") && other == m_CurrentElevator)
+        {
+            DetachElevator();
+        }
+    }
+    void UpdatedElevator()
+    {
+        if(m_CurrentElevator == null)
+        {
+            return;
+        }
+        if (!IsAttacheableElevator(m_CurrentElevator))
+        {
+            DetachElevator();
+        }
+    }
+    void LateUpdate()
+    {
+        Vector3 l_Angles = transform.rotation.eulerAngles;
+        transform.rotation = Quaternion.Euler(0.0f, l_Angles.y, 0.0f);
+    }
+    bool CanAttachElevator(Collider Elevator)
+    {
+        if(m_CurrentElevator == null){
+            return false;
+        }
+        return IsAttacheableElevator(Elevator);
+    }
+    bool IsAttacheableElevator(Collider Elevator)
+    {
+        float l_DotAngle = Vector3.Dot(Elevator.transform.forward, Vector3.up);
+        if (l_DotAngle >= Mathf.Cos(m_MaxAngleToAttach * Mathf.Deg2Rad))
+        {
+            return true;
+        }
+        return false;
+    }
+    void AttachElevator(Collider Elevator)
+    {
+        transform.SetParent(Elevator.transform.parent);
+        m_CurrentElevator = Elevator;
+    }
+    void DetachElevator() 
+    { 
+        m_CurrentElevator = null;
+        transform.SetParent(null);
     }
     public void RestartGame()
     {
