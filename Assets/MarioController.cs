@@ -26,6 +26,17 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     public float m_WaitStartJumpTime = 0.12f;
     public float m_MaxAngleNeededToKillGoomba = 15.0f;
     public float m_MinAngleNeededToKillGoomba = -1.0f;
+    private int m_JumpCombo = 0;
+    private float m_LastJumpTime;
+    private float m_MaxJumps;
+    private int m_CurrentJumpId;
+    private float m_JumpComboAvaliable = 1.3f;
+    public enum JumpType
+    {
+        m_Jump = 0,
+        m_DoubleJump = 1,
+        m_TripleJump = 2,
+    }
 
     [Header("Punch")]
     public float m_PunchComboAvaliable = 1.3f;
@@ -168,8 +179,21 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     }
     void Jump()
     {
-        m_Animator.SetTrigger("Jump");
-        StartCoroutine(ExecuteJump());
+
+            m_Animator.SetTrigger("Jump");
+        float m_DiffTime = Time.time - m_LastJumpTime;
+        if (m_DiffTime <= m_JumpComboAvaliable)
+        {
+            m_CurrentJumpId = (m_CurrentJumpId + 1) % 3;
+        }
+        else
+        {
+            m_CurrentJumpId = 0;
+        }
+        m_LastJumpTime = Time.time;
+        m_Animator.SetInteger("Jump Combo",m_CurrentJumpId);
+        StartCoroutine(ExecuteJump());  
+        
     }
     IEnumerator ExecuteJump()
     {
