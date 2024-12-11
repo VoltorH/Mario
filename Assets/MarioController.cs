@@ -30,7 +30,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     private float m_LastJumpTime;
     private float m_MaxJumps;
     private int m_CurrentJumpId;
-    private float m_JumpComboAvaliable = 1.3f;
+    private float m_JumpComboAvaliable = 5.3f;
     public enum JumpType
     {
         m_Jump = 0,

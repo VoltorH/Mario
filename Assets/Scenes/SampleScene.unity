@@ -1913,10 +1913,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Camera: {fileID: 963194227}
-  m_WalkSpeed: 0.5
+  m_WalkSpeed: 3
   m_RunSpeed: 8
   m_LerpRotationPct: 15
-  m_JumpVerticalSpeed: 5
+  m_JumpVerticalSpeed: 8
   m_KillJumpVerticalSpeed: 8
   m_WaitStartJumpTime: 0.12
   m_MaxAngleNeededToKillGoomba: 15
