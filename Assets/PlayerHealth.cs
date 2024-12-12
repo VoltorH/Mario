@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;  
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -10,15 +10,20 @@ public class PlayerHealth : MonoBehaviour
     public float m_CurrentHealth;
     public float m_DamageCooldown = 1.0f;
     private bool m_IsInvulnerable = false;
+
     Animator m_Animator;
-    CharacterController m_CharacterController;  
+    CharacterController m_CharacterController;
+
+    // Reference to the Animation component of the canvas object
+    public Animation m_CanvasAnimation;
+    public string m_DamageAnimationName; // Name of the damage animation
 
     private void Start()
     {
         m_CurrentHealth = m_MaxHealth;
         UpdateHealthUI();
         m_Animator = GetComponent<Animator>();
-        m_CharacterController = GetComponent<CharacterController>();  
+        m_CharacterController = GetComponent<CharacterController>();
     }
 
     private void Update()
@@ -32,10 +37,17 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(float damage)
     {
         if (m_IsInvulnerable) return;
+
         m_Animator.SetTrigger("Hit");
         m_CurrentHealth -= damage;
         m_CurrentHealth = Mathf.Clamp(m_CurrentHealth, 0, m_MaxHealth);
         UpdateHealthUI();
+
+        // Play the animation on the canvas object
+        if (m_CanvasAnimation != null && m_CanvasAnimation[m_DamageAnimationName] != null)
+        {
+            m_CanvasAnimation.Play(m_DamageAnimationName);
+        }
 
         if (m_CurrentHealth <= 0)
         {
