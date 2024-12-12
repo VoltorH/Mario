@@ -8,6 +8,8 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     public float m_DetectionRadius = 5.0f;
     public float m_DamagePerSecond = 1.0f;
     Animator m_Animator;
+    private Vector3 m_Velocity; 
+    private float m_Gravity = -9.81f;
 
     private CharacterController m_CharacterController;
     private Transform m_Player;
@@ -31,6 +33,10 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
 
     void Update()
     {
+
+         m_Velocity.y += m_Gravity * Time.deltaTime;
+        m_CharacterController.Move(m_Velocity * Time.deltaTime);
+
         if (m_IsAlert)
         {
             m_Animator.SetBool("Running", true);
@@ -43,19 +49,21 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
             Patrol();
             CheckForPlayer();
         }
+        if (m_CharacterController.isGrounded && m_Velocity.y < 0)
+        {
+            m_Velocity.y = 0f;
+        }
     }
 
     private void Patrol()
     {
-        // Move the Goomba in the current forward direction
         Vector3 forward = transform.forward * m_PatrolSpeed * Time.deltaTime;
         m_CharacterController.Move(forward);
 
-        // Update the rotation to face the movement direction
         if (forward != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(forward);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); // Smooth rotation
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); 
         }
 
         RaycastHit hit;
@@ -63,7 +71,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         {
             if (hit.collider.CompareTag("Wall"))
             {
-                transform.Rotate(0, 180, 0); // Turn around when hitting a wall
+                transform.Rotate(0, 180, 0); 
             }
         }
     }
@@ -81,12 +89,10 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private void ChasePlayer()
     {
         Vector3 direction = (m_Player.position - transform.position).normalized;
-        direction.y = 0; // Keep on the same level
+        direction.y = 0; 
 
-        // Move towards the player
         m_CharacterController.Move(direction * m_PatrolSpeed * Time.deltaTime);
 
-        // Update the rotation to face the player
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -98,7 +104,6 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
             DealDamage();
         }
 
-        // Exit alert state if the player is too far away
         if (Vector3.Distance(transform.position, m_Player.position) > m_DetectionRadius)
         {
             m_IsAlert = false;
