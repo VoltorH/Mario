@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class GoombaController : MonoBehaviour, IRestartGameElement
 {
-    public float m_PatrolSpeed = 2.0f;
+    private float m_PatrolSpeed = 3.5f;
     public float m_DetectionRadius = 5.0f;
     public float m_DamagePerSecond = 1.0f;
+    Animator m_Animator;
 
     private CharacterController m_CharacterController;
     private Transform m_Player;
@@ -17,6 +18,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private void Awake()
     {
         m_CharacterController = GetComponent<CharacterController>();
+        m_Animator = GetComponent<Animator>();
     }
 
     void Start()
@@ -31,10 +33,13 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     {
         if (m_IsAlert)
         {
+            m_Animator.SetBool("Running", true);
             ChasePlayer();
         }
         else
         {
+            m_Animator.SetBool("Running", false);
+
             Patrol();
             CheckForPlayer();
         }
@@ -42,17 +47,23 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
 
     private void Patrol()
     {
-        // Movimiento de patrulla
+        // Move the Goomba in the current forward direction
         Vector3 forward = transform.forward * m_PatrolSpeed * Time.deltaTime;
         m_CharacterController.Move(forward);
 
-        // Detectar colisión con paredes y girar
+        // Update the rotation to face the movement direction
+        if (forward != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(forward);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); // Smooth rotation
+        }
+
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.forward, out hit, 1.0f))
         {
             if (hit.collider.CompareTag("Wall"))
             {
-                transform.Rotate(0, 180, 0);
+                transform.Rotate(0, 180, 0); // Turn around when hitting a wall
             }
         }
     }
@@ -62,6 +73,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         float distanceToPlayer = Vector3.Distance(transform.position, m_Player.position);
         if (distanceToPlayer <= m_DetectionRadius)
         {
+            m_PatrolSpeed = 5.0f;
             m_IsAlert = true;
         }
     }
@@ -69,15 +81,24 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private void ChasePlayer()
     {
         Vector3 direction = (m_Player.position - transform.position).normalized;
-        direction.y = 0; // Mantenerse en el mismo nivel
+        direction.y = 0; // Keep on the same level
+
+        // Move towards the player
         m_CharacterController.Move(direction * m_PatrolSpeed * Time.deltaTime);
 
-        if (Vector3.Distance(transform.position, m_Player.position) < 1.0f)
+        // Update the rotation to face the player
+        if (direction != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); // Smooth rotation
+        }
+
+        if (Vector3.Distance(transform.position, m_Player.position) < 2.0f)
         {
             DealDamage();
         }
 
-        // Salir del estado de alerta si el jugador se aleja
+        // Exit alert state if the player is too far away
         if (Vector3.Distance(transform.position, m_Player.position) > m_DetectionRadius)
         {
             m_IsAlert = false;
@@ -86,8 +107,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
 
     private void DealDamage()
     {
-        // Aplicar daño al jugador
-        m_Player.GetComponent<PlayerHealth>().TakeDamage(m_DamagePerSecond * Time.deltaTime);
+        m_Player.GetComponent<PlayerHealth>().TakeDamage(1);
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -96,7 +116,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         {
             float verticalSpeed = hit.gameObject.GetComponent<MarioController>().m_JumpVerticalSpeed;
 
-            if (verticalSpeed < 0) // Mario está cayendo desde arriba
+            if (verticalSpeed < 0) 
             {
                 Kill();
             }
