@@ -175,12 +175,17 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     }
     bool CanJump()
     {
-        return true;
+        return m_CharacterController.isGrounded || IsFrontWallSuitable();
     }
     void Jump()
     {
+        if (IsFrontWallSuitable() && !m_CharacterController.isGrounded)
+        {
+            WallJump();
+            return;
+        }
 
-            m_Animator.SetTrigger("Jump");
+        m_Animator.SetTrigger("Jump");
         float m_DiffTime = Time.time - m_LastJumpTime;
         if (m_DiffTime <= m_JumpComboAvaliable)
         {
@@ -200,6 +205,39 @@ public class MarioController : MonoBehaviour, IRestartGameElement
         yield return new WaitForSeconds(m_WaitStartJumpTime);
         m_VerticalSpeed = m_JumpVerticalSpeed;
         m_Animator.SetBool("Falling",false);
+    }
+    void WallJump()
+    {
+        m_Animator.SetTrigger("WallJump");
+        m_VerticalSpeed = m_JumpVerticalSpeed;
+
+        Vector3 wallNormal = GetWallNormal();
+        Vector3 jumpDirection = (wallNormal + Vector3.up).normalized;
+        m_CharacterController.Move(jumpDirection * m_RunSpeed * Time.deltaTime);
+
+        m_Animator.SetBool("Falling", false);
+    }
+
+    bool IsFrontWallSuitable()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, 1.0f))
+        {
+            Vector3 forward = transform.forward;
+            float angle = Vector3.Angle(-hit.normal, forward);
+            return angle < 20.0f; 
+        }
+        return false;
+    }
+
+    Vector3 GetWallNormal()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, 1.0f))
+        {
+            return hit.normal;
+        }
+        return Vector3.zero;
     }
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
