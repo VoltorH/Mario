@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEditor.Build.Content;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class MarioController : MonoBehaviour, IRestartGameElement
 {
     CharacterController m_CharacterController;
     Animator m_Animator;
     public Camera m_Camera;
-
-
+    AudioManager m_AudioManager;
+    public GameManager m_GameManager;
+    [SerializeField] private ParticleSystem m_Particles;
     public float m_WalkSpeed = 0.5f;
     public float m_RunSpeed = 8.0f;
     public float m_LerpRotationPct = 0.8f;
     float m_VerticalSpeed = 0.0f;
+
+    private float m_IdleTime = 0.0f; // Tiempo que el jugador ha estado quieto
+    private float m_MaxIdleTime = 10.0f;
 
     Vector3 m_StartPosition;
     Quaternion m_StartRotation;
@@ -79,6 +85,8 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     {
         m_CharacterController = GetComponent<CharacterController>();
         m_Animator = GetComponent<Animator>();
+        m_AudioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+
     }
 
     private void Start()
@@ -108,24 +116,52 @@ public class MarioController : MonoBehaviour, IRestartGameElement
         {
             l_Movement = l_Right;
             l_HasMovement = true;
+            m_AudioManager.PlaySFX(m_AudioManager.steps);
+            m_Particles.Play();
+
         }
         else if (Input.GetKey(m_LeftKeyCode))
         {
             l_Movement = -l_Right;
             l_HasMovement = true;
+            m_AudioManager.PlaySFX(m_AudioManager.steps);
+            m_Particles.Play();
+
         }
         if (Input.GetKey(m_UpKeyCode))
         {
             l_Movement += l_Forward;
             l_HasMovement = true;
+            m_AudioManager.PlaySFX(m_AudioManager.steps);
+            m_Particles.Play();
+
         }
         else if (Input.GetKey(m_DownKeyCode))
         {
             l_Movement -= l_Forward;
             l_HasMovement = true;
+            m_AudioManager.PlaySFX(m_AudioManager.steps);
+            m_Particles.Play();
+
         }
         l_Movement.Normalize();
         float l_Speed = 0.0f;
+        if (!l_HasMovement)
+        {
+            m_IdleTime += Time.deltaTime; // Incrementamos el tiempo que est¨¢ quieto el jugador
+        }
+        else
+        {
+            m_IdleTime = 0.0f; // Si el jugador se mueve, reiniciamos el temporizador
+        }
+
+        // Verificar si el jugador ha estado quieto durante 10 segundos
+        if (m_IdleTime >= m_MaxIdleTime)
+        {
+            // Activar la animaci¨®n de backflip
+            m_Animator.SetTrigger("Backflip");
+            m_IdleTime = 0.0f; // Reiniciar el temporizador despu¨¦s de activar el backflip
+        }
         if (l_HasMovement) 
         {
             if (Input.GetKey(m_RunKeyCode))
@@ -150,6 +186,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
             m_Animator.SetFloat("Speed",0.0f);
         if (CanJump() && Input.GetKeyDown(m_JumpKeyCode))
             Jump();
+        m_AudioManager.PlaySFX(m_AudioManager.jump);
 
         l_Movement = l_Movement*l_Speed*Time.deltaTime;
         
@@ -204,6 +241,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
     {
         yield return new WaitForSeconds(m_WaitStartJumpTime);
         m_VerticalSpeed = m_JumpVerticalSpeed;
+
         m_Animator.SetBool("Falling",false);
     }
     void WallJump()
@@ -315,7 +353,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
                 break;
         }
     }
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("CheckPoint"))
         {
@@ -328,6 +366,11 @@ public class MarioController : MonoBehaviour, IRestartGameElement
             {
                 AttachElevator(other);
             }
+        }
+        if (other.CompareTag("DeadZone"))
+        {
+            Debug.Log("Player entered DeadZone"); // Verifica si se llama.
+            m_GameManager.GameOver();
         }
     }
     private void OnTriggerExit(Collider other)
@@ -395,6 +438,7 @@ public class MarioController : MonoBehaviour, IRestartGameElement
         m_CharacterController.enabled = true;
 
     }
+
     /*(public void Step (AnimationEvent _AnimationEvent)
     {
         AudioClip l_AudioClip =

@@ -8,8 +8,15 @@ public class CoinBehaviour : MonoBehaviour
     public Vector3 m_RotationSpeed = new Vector3(0, 3, 0);
     public float m_Amplitude = 0.3f;
     public float m_Frequency = 1f;
+    AudioManager m_AudioManager;
 
     private Vector3 m_StartPosition;
+
+    public void Awake()
+    {
+        m_AudioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+
+    }
     public void Start()
     {
             m_StartPosition = transform.position;
@@ -29,6 +36,7 @@ public class CoinBehaviour : MonoBehaviour
         {
            m_Coins = other.gameObject.GetComponent<CoinManager>();
             m_Coins.AddScore();
+            m_AudioManager.PlaySFX(m_AudioManager.coin);
             Destroy(gameObject);
         }
     }

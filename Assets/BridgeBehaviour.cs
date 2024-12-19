@@ -11,7 +11,7 @@ public class BridgeBehaviour : MonoBehaviour
 
     private Rigidbody rb; // El Rigidbody del puente.
     private float bridgeWidth = 10f; // El ancho del puente, ajusta según el tamaño del puente.
-    private bool playerOnBridge = false; // Si el jugador está sobre el puente.
+    private bool playerOnBridge = false; // Si el jugador est?sobre el puente.
 
     void Start()
     {
@@ -24,7 +24,7 @@ public class BridgeBehaviour : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Detectar si el jugador está sobre el puente usando una detección de esfera.
+        // Detectar si el jugador est?sobre el puente usando una detección de esfera.
         Collider[] players = Physics.OverlapSphere(transform.position, bridgeWidth, playerLayer);
 
         if (players.Length > 0)
@@ -46,7 +46,7 @@ public class BridgeBehaviour : MonoBehaviour
         }
         else
         {
-            // Si el jugador ya no está sobre el puente, dejar de aplicar torque.
+            // Si el jugador ya no est?sobre el puente, dejar de aplicar torque.
             if (playerOnBridge)
             {
                 rb.angularVelocity = Vector3.zero; // Detener la rotación del puente.

@@ -16,11 +16,14 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private Vector3 m_StartPosition;
     private Quaternion m_StartRotation;
     private bool m_IsAlert = false;
+    AudioManager m_AudioManager;
 
     private void Awake()
     {
         m_CharacterController = GetComponent<CharacterController>();
         m_Animator = GetComponent<Animator>();
+        m_AudioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+
     }
 
     void Start()
@@ -40,6 +43,7 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         if (m_IsAlert)
         {
             m_Animator.SetBool("Running", true);
+            m_AudioManager.PlaySFX(m_AudioManager.goombaStep);
             ChasePlayer();
         }
         else
@@ -141,6 +145,8 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     public void Kill()
     {
         gameObject.SetActive(false);
+        m_AudioManager.PlaySFX(m_AudioManager.goombaDie);
+
     }
 
     private void OnDrawGizmosSelected()
