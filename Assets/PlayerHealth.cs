@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -10,6 +9,7 @@ public class PlayerHealth : MonoBehaviour
     public float m_CurrentHealth;
     public float m_DamageCooldown = 1.0f;
     private bool m_IsInvulnerable = false;
+    public GameManager1 m_GameManager;
 
     Animator m_Animator;
     CharacterController m_CharacterController;
@@ -52,6 +52,8 @@ public class PlayerHealth : MonoBehaviour
         if (m_CurrentHealth <= 0)
         {
             Die();
+            m_GameManager.GameOver();
+
         }
         else
         {
@@ -82,6 +84,7 @@ public class PlayerHealth : MonoBehaviour
 
         m_Animator.SetBool("Die", true);
         StartCoroutine(WaitForDeathAnimation());
+
     }
 
     private IEnumerator WaitForDeathAnimation()
