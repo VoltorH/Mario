@@ -9,6 +9,8 @@ TagManager:
   - Bridge
   - Audio
   - DeadZone
+  - Elevator
+  - Punch
   layers:
   - Default
   - TransparentFX

@@ -7,23 +7,26 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private float m_PatrolSpeed = 3.5f;
     public float m_DetectionRadius = 5.0f;
     public float m_DamagePerSecond = 1.0f;
-    Animator m_Animator;
-    private Vector3 m_Velocity; 
-    private float m_Gravity = -9.81f;
+    public float m_PatrolDistance = 10.0f;
 
+    private Animator m_Animator;
     private CharacterController m_CharacterController;
     private Transform m_Player;
     private Vector3 m_StartPosition;
     private Quaternion m_StartRotation;
+    private Vector3 m_TargetPatrolPosition;
     private bool m_IsAlert = false;
-    AudioManager m_AudioManager;
+    private bool m_IsReturning = false;
+    private bool m_PatrolForward = true;
+    private AudioManager m_AudioManager;
+    private Vector3 m_Velocity;
+    private float m_Gravity = -9.81f;
 
     private void Awake()
     {
         m_CharacterController = GetComponent<CharacterController>();
         m_Animator = GetComponent<Animator>();
         m_AudioManager = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
-
     }
 
     void Start()
@@ -31,13 +34,13 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         m_Player = GameObject.FindWithTag("Player").transform;
         m_StartPosition = transform.position;
         m_StartRotation = transform.rotation;
+        m_TargetPatrolPosition = m_StartPosition + transform.forward * m_PatrolDistance;
         GameManager.GetGameManager().AddRestartGameElement(this);
     }
 
     void Update()
     {
-
-         m_Velocity.y += m_Gravity * Time.deltaTime;
+        m_Velocity.y += m_Gravity * Time.deltaTime;
         m_CharacterController.Move(m_Velocity * Time.deltaTime);
 
         if (m_IsAlert)
@@ -46,13 +49,18 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
             m_AudioManager.PlaySFX(m_AudioManager.goombaStep);
             ChasePlayer();
         }
+        else if (m_IsReturning)
+        {
+            m_Animator.SetBool("Running", true);
+            ReturnToStart();
+        }
         else
         {
             m_Animator.SetBool("Running", false);
-
             Patrol();
             CheckForPlayer();
         }
+
         if (m_CharacterController.isGrounded && m_Velocity.y < 0)
         {
             m_Velocity.y = 0f;
@@ -61,22 +69,21 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
 
     private void Patrol()
     {
-        Vector3 forward = transform.forward * m_PatrolSpeed * Time.deltaTime;
-        m_CharacterController.Move(forward);
+        Vector3 targetPosition = m_PatrolForward ? m_TargetPatrolPosition : m_StartPosition;
+        Vector3 direction = (targetPosition - transform.position).normalized;
+        direction.y = 0;
 
-        if (forward != Vector3.zero)
+        m_CharacterController.Move(direction * m_PatrolSpeed * Time.deltaTime);
+
+        if (direction != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(forward);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); 
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
 
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, 1.0f))
+        if (Vector3.Distance(transform.position, targetPosition) < 0.5f)
         {
-            if (hit.collider.CompareTag("Wall"))
-            {
-                transform.Rotate(0, 180, 0); 
-            }
+            m_PatrolForward = !m_PatrolForward;
         }
     }
 
@@ -93,14 +100,14 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
     private void ChasePlayer()
     {
         Vector3 direction = (m_Player.position - transform.position).normalized;
-        direction.y = 0; 
+        direction.y = 0;
 
         m_CharacterController.Move(direction * m_PatrolSpeed * Time.deltaTime);
 
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f); // Smooth rotation
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
 
         if (Vector3.Distance(transform.position, m_Player.position) < 2.0f)
@@ -111,6 +118,27 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         if (Vector3.Distance(transform.position, m_Player.position) > m_DetectionRadius)
         {
             m_IsAlert = false;
+            m_IsReturning = true;
+        }
+    }
+
+    private void ReturnToStart()
+    {
+        Vector3 direction = (m_StartPosition - transform.position).normalized;
+        direction.y = 0;
+
+        m_CharacterController.Move(direction * m_PatrolSpeed * Time.deltaTime);
+
+        if (direction != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+        }
+
+        if (Vector3.Distance(transform.position, m_StartPosition) < 0.5f)
+        {
+            m_IsReturning = false;
+            m_PatrolForward = true;
         }
     }
 
@@ -124,11 +152,18 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         if (hit.gameObject.CompareTag("Player"))
         {
             float verticalSpeed = hit.gameObject.GetComponent<MarioController>().m_JumpVerticalSpeed;
-
-            if (verticalSpeed < 0) 
+            if (verticalSpeed < 0)
             {
                 Kill();
             }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Punch"))
+        {
+            Kill();
         }
     }
 
@@ -138,20 +173,24 @@ public class GoombaController : MonoBehaviour, IRestartGameElement
         m_CharacterController.enabled = false;
         transform.position = m_StartPosition;
         transform.rotation = m_StartRotation;
+        m_TargetPatrolPosition = m_StartPosition + transform.forward * m_PatrolDistance;
         m_CharacterController.enabled = true;
         m_IsAlert = false;
+        m_IsReturning = false;
+        m_PatrolForward = true;
     }
 
     public void Kill()
     {
         gameObject.SetActive(false);
         m_AudioManager.PlaySFX(m_AudioManager.goombaDie);
-
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, m_DetectionRadius);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(m_StartPosition, m_StartPosition + transform.forward * m_PatrolDistance);
     }
 }
