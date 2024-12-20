@@ -1269,6 +1269,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 62
   m_CollisionDetection: 0
+--- !u!65 &617957670
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617957661}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 38.12143, y: 7.5876155, z: 0.9160859}
+  m_Center: {x: 0.0000057220464, y: -0.0000051259995, z: -0.000003412366}
 --- !u!1001 &631463222
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3480,6 +3501,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 7c0c5ddd8aaaf0648a5624fc561b3af4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 617957667}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 7c0c5ddd8aaaf0648a5624fc561b3af4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 617957670}
   m_SourcePrefab: {fileID: 100100000, guid: 7c0c5ddd8aaaf0648a5624fc561b3af4, type: 3}
 --- !u!1 &1206889285
 GameObject:
@@ -4016,7 +4040,7 @@ HingeJoint:
   m_Anchor: {x: 0, y: 0.13, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.44000244, y: 6.549999, z: -0.29000092}
+  m_ConnectedAnchor: {x: -0.44000244, y: 6.459999, z: -0.29000092}
   serializedVersion: 2
   m_UseSpring: 1
   m_Spring:
